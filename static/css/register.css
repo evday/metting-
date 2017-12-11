@@ -1,0 +1,33 @@
+
+.avatar {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+#avatar_file, #avatar_img {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    width: 60px;
+    height: 60px;
+}
+
+#avatar_file {
+    opacity: 0;
+}
+
+.my-navbar a {
+    background: transparent !important;
+    color: #fff !important;
+}
+
+.my-navbar a:hover {
+    color: #45bcf9 !important;
+    background: transparent;
+    outline: 0;
+}
+
+#input {
+    color: red;
+}
