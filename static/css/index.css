@@ -1,0 +1,45 @@
+.shade {
+    position: fixed;
+    z-index: 1040;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #999;
+    filter: alpha(opacity=50);
+    -moz-opacity: 0.5;
+    opacity: 0.5;
+}
+
+.loading {
+    position: fixed;
+    z-index: 1050;
+    top: 40%;
+    left: 50%;
+    height: 32px;
+    width: 32px;
+    margin: 0 0 0 -16px;
+    background: url(/static/img/loading.gif);
+}
+
+td {
+    width: 60px;
+    height: 60px;
+
+}
+
+.cl {
+    background-color: yellow;
+}
+
+.hid {
+    display: none;
+}
+
+table > tbody td.chosen {
+    background-color: #F0FFF0;
+}
+
+table > tbody td.selected {
+    background-color: #EEE685;
+}
