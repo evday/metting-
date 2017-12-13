@@ -20,9 +20,11 @@
         <div class="col-md-4 col-md-offset-8">
             <div class="col-md-8 col-md-offset-2">
                 <div class="form-group inline-group">
+                    <div class="errors"></div>
                     <div class="input-group date form_date" data-date="" data-date-format="dd MM yyyy"
                          data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
-                        <input class="form-control" size="16" type="text" value="" id="rli" readonly placeholder="请选择日期"/>
+                        <input class="form-control" size="16" type="text" value="" id="rli" readonly
+                               placeholder="请选择日期"/>
                         <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
                     </div>
                     <input type="hidden" id="dtp_input2" value=""/><br/>
@@ -45,10 +47,10 @@
         </tr>
         </thead>
 
-            <tbody id="tBody">
+        <tbody id="tBody">
 
 
-            </tbody>
+        </tbody>
 
     </table>
 
@@ -62,49 +64,47 @@
 <script type="text/javascript" src="/static/js/bootstrap-datetimepicker.zh-CN.js"></script>
 <script type="text/javascript">
 
-   
 
+    {#    $("#tBody").on("click",".ite",function () {#}
+    {#        $(this).toggleClass("cl");#}
+    {#    });#}
+    {#$(".save_data").click(function () {#}
+    {#        var data_list = [];#}
+    {#        $(".cl").each(function () {#}
+    {##}
+    {#            tem = {#}
+    {#                "room_id": $(this).attr("room_id"),#}
+    {#                "time_id": $(this).attr("time_id"),#}
+    {#                "day": $("#rli").val()#}
+    {#            };#}
+    {#            data_list.push(tem);#}
+    {##}
+    {#        }#}
+    {#        );#}
+    {#        console.log(data_list);#}
+    {##}
+    {##}
+    {#        $.post({#}
+    {#            url:'/booking/',#}
+    {#            headers: {"X-CSRFToken": $.cookie("csrftoken")},#}
+    {#            data: JSON.stringify(data_list),#}
+    {#            contentType: "application/json",#}
+    {#            success: function (data) {#}
+    {#                if(data["success"]){#}
+    {#                    $(".cl").text(data["user"]);#}
+    {#                    $(".cl").css({"background-color":"gold","disabled":"disabled"});#}
+    {#                    $("#rli").val(data["day"])#}
+    {#                }#}
+    {#                else{#}
+    {#                    alert("预定失败，请检查您的订单")#}
+    {#                }#}
+    {#            }#}
+    {##}
+    {##}
+    {#        })#}
+    {##}
+    {#    });#}
 
-    $("#tBody").on("click",".ite",function () {
-        $(this).toggleClass("cl");
-    });
-
-    $(".save_data").click(function () {
-        var data_list = [];
-        $(".cl").each(function () {
-
-            tem = {
-                "room_id": $(this).attr("room_id"),
-                "time_id": $(this).attr("time_id"),
-                "day": $("#rli").val()
-            };
-            data_list.push(tem);
-
-        }
-        );
-        console.log(data_list);
-
-
-        $.post({
-            url:'/booking/',
-            headers: {"X-CSRFToken": $.cookie("csrftoken")},
-            data: JSON.stringify(data_list),
-            contentType: "application/json",
-            success: function (data) {
-                if(data["success"]){
-                    $(".cl").text(data["user"]);
-                    $(".cl").css({"background-color":"gold","disabled":"disabled"});
-                    $("#rli").val(data["day"])
-                }
-                else{
-                    alert("预定失败，请检查您的订单")
-                }
-            }
-
-
-        })
-
-    });
 
 
     // 对Date的扩展，将 Date 转化为指定格式的String
@@ -129,49 +129,56 @@
         return fmt;
     };
 
-
-    $(function () {//页面加载的时候就执行
+    SELECT_ROOM = {"DEL": {}, "ADD": {}};
+    CHOSE_DATE = new Date().Format("yyyy-MM-dd");
+    //页面加载的时候就执行
+    $(function () {
         initDatePicker();
+        BindTdEvent();
+        bindSaveEvent();
         initBookInfo(new Date().Format('yyyy-MM-dd'))
     });
+    // 初始化时间插件
     function initDatePicker() {
-         $('.form_date').datetimepicker({
-        format: 'yyyy-mm-dd',
-        language: 'zh-CN',
-        bootcssVer:3,//bootstrap3,避免小图标不出现,好像没什么卵用
-        weekStart: 1,
-        startDate:new Date(), //起始时间
-        todayBtn: 1,
-{#        autoclose: 1,#} //是否自动关闭
-        todayHighlight: 1,
-        startView: 2,
-        minView: 2,
-        forceParse: 0
-    }).on("changeDate",changeDate);
+        $('.form_date').datetimepicker({
+            format: 'yyyy-mm-dd',
+            language: 'zh-CN',
+            bootcssVer: 3,//bootstrap3,避免小图标不出现,好像没什么卵用
+            weekStart: 1,
+            startDate: new Date(), //起始时间
+            todayBtn: 1,
+            {#        autoclose: 1,#} //是否自动关闭
+            todayHighlight: 1,
+            startView: 2,
+            minView: 2,
+            forceParse: 0
+        }).on("changeDate", changeDate);
     }
+    // 时间插件change函数
     function changeDate(ev) {
         CHOSE_DATE = ev.date.Format('yyyy-MM-dd');
         initBookInfo(CHOSE_DATE)
     }
+    //初始化预定信息
     function initBookInfo(date) {
         $("#shade,#loading").removeClass("hid");
         $.ajax({
-            url:'/booking/',
-            type:"get",
-            data:{date:date},//日期
+            url: '/booking/',
+            type: "get",
+            data: {date: date},//日期
             success: function (arg) {
 
                 $('#shade,#loading').addClass('hide');
                 if (arg.code === 1000) {
                     $('#tBody').empty();
-                    $.each(arg.data, function (i,item) {
+                    $.each(arg.data, function (i, item) {
 
                         var tr = $("<tr>");
                         $.each(item, function (j, row) {
                             var td = $("<td></td>");
 
                             $(td).text(row.text);
-                            if(!$(td).text()){
+                            if (!$(td).text()) {
                                 $(td).addClass("ite")
                             }
 
@@ -185,7 +192,10 @@
                             $(tr).append(td)
                         });
                         $("#tBody").append(tr);
-                    })
+                    });
+                    SELECT_ROOM = {"DEL": {}, "ADD": {}};
+                    CHOSE_DATE = new Date().Format("yyyy-MM-dd");
+
                 } else {
                     alert(arg.msg);
                 }
@@ -194,6 +204,65 @@
                 $('#shade,#loading').addClass('hide');
                 alert('请求异常');
             }
+        })
+    }
+
+
+    //绑定会议室预定事件
+    function BindTdEvent() {
+        $("#tBody").on("click", "td[time_id][disable!='true']", function () {
+            var room_id = $(this).attr("room_id");
+            var time_id = $(this).attr("time_id");
+            if ($(this).hasClass("chosen")) {
+                //取消预定
+                $(this).removeClass("chosen").empty();
+                if (SELECT_ROOM.DEL[room_id]) {
+                    SELECT_ROOM.DEL[room_id].push(time_id)
+                } else {
+                    SELECT_ROOM.DEL[room_id] = [time_id]
+                }
+
+            } else if ($(this).hasClass("disable")) {
+                //取消选择
+                $(this).removeClass("disable");
+                //查看time_id 是否在SELECT_ROOM.ADD[room_id]中
+                var timeIndex = SELECT_ROOM.ADD[room_id].indexOf(time_id);
+                if (timeIndex !== -1) {//不在里面indexof 返回-1 ，在里面的话就把它删掉
+                    SELECT_ROOM.ADD[room_id].splice(timeIndex, 1);//这个1 表示删几次
+                }
+            } else {
+                $(this).addClass("disable");
+                if (SELECT_ROOM.ADD[room_id]) {
+                    SELECT_ROOM.ADD[room_id].push(time_id)
+                } else {
+                    SELECT_ROOM.ADD[room_id] = [time_id]
+                }
+            }
+
+        })
+    }
+    //绑定保存事件
+    function bindSaveEvent() {
+        $(".errors").text("");
+        $(".save_data").click(function () {
+            $("#shade,#loading").removeClass("hid");
+            $.ajax({
+                url: "/booking/",
+                type: "post",
+                headers: {"X-CSRFToken": $.cookie("csrftoken")},
+                data: {date: CHOSE_DATE, data: JSON.stringify(SELECT_ROOM)},
+                dataType: "json",
+                success: function (arg) {
+
+                    $("#shade,#loading").addClass("hid");
+                    if (arg.code == 1000) {
+                        initBookInfo(CHOSE_DATE);//调用初始化函数
+                    } else {
+                        $(".errors").text(arg.msg)
+                    }
+                }
+
+            })
         })
     }
 

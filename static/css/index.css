@@ -28,9 +28,9 @@ td {
 
 }
 
-.cl {
-    background-color: yellow;
-}
+/*.cl {*/
+    /*background-color: yellow;*/
+/*}*/
 
 .hid {
     display: none;
@@ -40,6 +40,10 @@ table > tbody td.chosen {
     background-color: #F0FFF0;
 }
 
-table > tbody td.selected {
-    background-color: #EEE685;
+table > tbody td.disable {
+    background-color: gold;
+}
+.errors{
+    float: left;
+    color:red;
 }

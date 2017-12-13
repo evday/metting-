@@ -3,6 +3,7 @@ from datetime import datetime
 
 from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
+from django.db.models import Q
 
 from room import models
 from room.forms import RegisterForm
@@ -125,22 +126,56 @@ def booking(request):
         return JsonResponse(ret)
 
     elif request.is_ajax():
-        state = {"error_list":None,"success":False,"user":None}
-        data_list = json.loads(request.body.decode("utf-8"))
+        try:
+            fetch_date = request.POST.get('date')
+            fetch_date = datetime.strptime(fetch_date, '%Y-%m-%d').date()
+            if fetch_date < current_date:
+                raise Exception('不能是以前的时间')
+            book_info = json.loads(request.POST.get("data"))
 
-        user_id = request.session.get("id")
+            for room_id,time_id_list in book_info["ADD"].items():
 
 
+                if room_id not in book_info["DEL"]:
+                    continue
+                else:
+                    for time_id in list(time_id_list):
+                        if time_id in book_info["DEL"][room_id]: #取到删除字典中的time_id判断增加的time_id是否在其中
+                            book_info["DEL"][room_id].remove(time_id)#说明这个是不打算删掉的
+                            book_info["ADD"][room_id].remove(time_id)
 
 
-        for i in data_list:
-            try:
-                i["user_id"] = user_id
-                order_obj = models.Order.objects.create(**i)
-                state["success"] = True
-                state["user"] = order_obj.user.user
-                state["day"] = order_obj.day
-            except Exception as e:
-                print(e)
-                state["error_list"] = "添加失败"
-        return JsonResponse(state)
+            add_book_list = []
+
+            for room_id, time_id_list in book_info["ADD"].items():
+                for time_id in time_id_list:
+                    order_obj = models.Order(
+                        user_id = request.session.get("id"),
+                        room_id = room_id,
+                        time_id = time_id,
+                        day = fetch_date
+                    )
+                    add_book_list.append(order_obj)
+            models.Order.objects.bulk_create(add_book_list)
+
+            #取消预定的
+            removing_book = Q()
+            for room_id,time_id_list in book_info["DEL"].items():
+                for time_id in time_id_list:
+                    tem = Q()
+                    tem.connector = 'AND' #且的关系
+                    tem.children.append(("user_id",request.session.get("id")))
+                    tem.children.append(("room_id",room_id))
+                    tem.children.append(("time_id",time_id))
+                    tem.children.append(("day",fetch_date))
+
+                    removing_book.add(tem,"OR")#或的关系
+
+            if removing_book:
+                models.Order.objects.filter(removing_book).delete()
+
+        except Exception as e:
+            ret["code"] = 1001
+            ret["msg"] = str(e)
+
+        return JsonResponse(ret)
