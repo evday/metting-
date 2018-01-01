@@ -1,7 +1,8 @@
 import json
+import hashlib
 from datetime import datetime
 
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse,redirect
 from django.http import JsonResponse
 from django.db.models import Q
 
@@ -10,8 +11,44 @@ from room.forms import RegisterForm
 
 
 # Create your views here.
+def md5(val):
+    '''
+    加密 密码
+    :param val:
+    :return:
+    '''
+    m = hashlib.md5()
+    m.update(val.encode('utf-8'))
+    return m.hexdigest()
+
+def auth(func):
+    '''
+    登录装饰器
+    :param func:
+    :return:
+    '''
+    def inner(request,*args,**kwargs):
+        user_info = request.session.get("user_info")
+        if not user_info:
+            return redirect("/login/")
+        return func(request,*args,**kwargs)
+    return inner
+
+def auth_json(func):
+    def inner(request,*args,**kwargs):
+        user_info = request.session.get("user_info")
+        if not user_info:
+            return JsonResponse({"status":False,"msg":"用户未登录"})
+        return func(request,*args,**kwargs)
+    return inner
+
 
 def register(request):
+    '''
+    注册
+    :param request:
+    :return:
+    '''
     if request.method == "GET":
         form = RegisterForm()
         return render(request, 'register.html', {"form": form})
@@ -21,7 +58,11 @@ def register(request):
         registerResponse = {"user": None, "error_list": None}
 
         if form.is_valid():
-            form.save()
+            form.cleaned_data["pwd"] = md5(form.cleaned_data["pwd"])
+            pwd = form.cleaned_data["pwd"]
+            user = form.cleaned_data["user"]
+            phone = form.cleaned_data["phone"]
+            models.User.objects.create(user=user,pwd=pwd,phone=phone)
             registerResponse["user"] = form.cleaned_data.get("user")
 
         else:
@@ -30,6 +71,11 @@ def register(request):
 
 
 def login(request):
+    '''
+    登录
+    :param request:
+    :return:
+    '''
     if request.method == "GET":
         return render(request, 'login.html')
     elif request.is_ajax():
@@ -46,27 +92,24 @@ def login(request):
             state["state"] = "pwd_none"
             return HttpResponse(json.dumps(state))
 
-        user = models.User.objects.filter(user=username, pwd=password).first()
+        user = models.User.objects.filter(user=username, pwd=md5(password)).first()
 
         if user:
             state["state"] = "login_success"
-            request.session["username"] = user.user
-
-            request.session["id"] = user.id
-
+            request.session["user_info"] = {"username":user.user,"id":user.id}
 
         else:
             state["state"] = "failed"
 
         return HttpResponse(json.dumps(state))
 
-
+@auth
 def index(request):
     times = models.Time.objects.all()
 
     return render(request, 'index.html', {"times": times})
 
-
+@auth_json
 def booking(request):
     """
     获取会议室预定情况以及预定会议室

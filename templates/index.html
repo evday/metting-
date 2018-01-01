@@ -64,49 +64,6 @@
 <script type="text/javascript" src="/static/js/bootstrap-datetimepicker.zh-CN.js"></script>
 <script type="text/javascript">
 
-
-    {#    $("#tBody").on("click",".ite",function () {#}
-    {#        $(this).toggleClass("cl");#}
-    {#    });#}
-    {#$(".save_data").click(function () {#}
-    {#        var data_list = [];#}
-    {#        $(".cl").each(function () {#}
-    {##}
-    {#            tem = {#}
-    {#                "room_id": $(this).attr("room_id"),#}
-    {#                "time_id": $(this).attr("time_id"),#}
-    {#                "day": $("#rli").val()#}
-    {#            };#}
-    {#            data_list.push(tem);#}
-    {##}
-    {#        }#}
-    {#        );#}
-    {#        console.log(data_list);#}
-    {##}
-    {##}
-    {#        $.post({#}
-    {#            url:'/booking/',#}
-    {#            headers: {"X-CSRFToken": $.cookie("csrftoken")},#}
-    {#            data: JSON.stringify(data_list),#}
-    {#            contentType: "application/json",#}
-    {#            success: function (data) {#}
-    {#                if(data["success"]){#}
-    {#                    $(".cl").text(data["user"]);#}
-    {#                    $(".cl").css({"background-color":"gold","disabled":"disabled"});#}
-    {#                    $("#rli").val(data["day"])#}
-    {#                }#}
-    {#                else{#}
-    {#                    alert("预定失败，请检查您的订单")#}
-    {#                }#}
-    {#            }#}
-    {##}
-    {##}
-    {#        })#}
-    {##}
-    {#    });#}
-
-
-
     // 对Date的扩展，将 Date 转化为指定格式的String
     // 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符，
     // 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字)
